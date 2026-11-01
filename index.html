@@ -1,0 +1,1971 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Инженерный дашборд дорожного строительства</title>
+
+<!-- Мини-скрипт до отрисовки: применяем сохранённую тему без мигания -->
+<script>
+  (function () {
+    try {
+      var saved = localStorage.getItem('road-dashboard-theme');
+      if (saved !== 'light' && saved !== 'dark') {
+        saved = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)
+          ? 'dark' : 'light';
+      }
+      document.documentElement.setAttribute('data-theme', saved);
+    } catch (e) {
+      document.documentElement.setAttribute('data-theme', 'light');
+    }
+  })();
+</script>
+
+<style>
+  /* =========================================================
+     ТЕМЫ
+     ========================================================= */
+  :root,
+  [data-theme="light"] {
+    --bg:            #eef2f7;
+    --bg-grad-1:     #dbeafe;
+    --bg-grad-2:     #e0e7ff;
+    --surface:       #ffffff;
+    --surface-2:     #f8fafc;
+    --surface-3:     #f1f5f9;
+    --text:          #0f172a;
+    --text-2:        #334155;
+    --text-3:        #64748b;
+    --border:        #e2e8f0;
+    --border-2:      #cbd5e1;
+    --primary:       #2563eb;
+    --primary-h:     #1d4ed8;
+    --primary-soft:  #eff6ff;
+    --primary-ring:  rgba(37, 99, 235, .18);
+    --success:       #16a34a;
+    --success-soft:  #ecfdf5;
+    --danger:        #dc2626;
+    --danger-soft:   #fef2f2;
+    --shadow-sm:     0 1px 2px rgba(15, 23, 42, .04);
+    --shadow-md:     0 1px 2px rgba(15, 23, 42, .04), 0 14px 36px rgba(15, 23, 42, .08);
+    --shadow-tab:    0 1px 2px rgba(15, 23, 42, .05), 0 6px 16px rgba(15, 23, 42, .06);
+    --radius-lg:     20px;
+    --radius-md:     14px;
+    --radius-sm:     10px;
+  }
+
+  [data-theme="dark"] {
+    --bg:            #0b1120;
+    --bg-grad-1:     #172554;
+    --bg-grad-2:     #1e293b;
+    --surface:       #111a2e;
+    --surface-2:     #0f172a;
+    --surface-3:     #1e293b;
+    --text:          #e2e8f0;
+    --text-2:        #cbd5e1;
+    --text-3:        #94a3b8;
+    --border:        #1e293b;
+    --border-2:      #334155;
+    --primary:       #3b82f6;
+    --primary-h:     #60a5fa;
+    --primary-soft:  #172554;
+    --primary-ring:  rgba(96, 165, 250, .25);
+    --success:       #4ade80;
+    --success-soft:  #052e16;
+    --danger:        #f87171;
+    --danger-soft:   #450a0a;
+    --shadow-sm:     0 1px 2px rgba(0, 0, 0, .3);
+    --shadow-md:     0 1px 2px rgba(0, 0, 0, .3), 0 14px 36px rgba(0, 0, 0, .4);
+    --shadow-tab:    0 1px 2px rgba(0, 0, 0, .4), 0 6px 16px rgba(0, 0, 0, .35);
+  }
+
+  /* =========================================================
+     БАЗА
+     ========================================================= */
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    padding: 28px 16px 64px;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                 "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--text);
+    background-color: var(--bg);
+    background-image:
+      radial-gradient(1100px 550px at 12% -10%, var(--bg-grad-1) 0%, transparent 55%),
+      radial-gradient(900px 500px at 100% 0%, var(--bg-grad-2) 0%, transparent 50%);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    -webkit-font-smoothing: antialiased;
+    transition: background-color .25s ease, color .25s ease;
+  }
+
+  .app {
+    width: 100%;
+    max-width: 1080px;
+    margin: 0 auto;
+  }
+
+  /* =========================================================
+     ШАПКА
+     ========================================================= */
+  .app-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+  }
+
+  .brand-mark {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    background: var(--primary);
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 15px;
+    letter-spacing: .02em;
+    flex-shrink: 0;
+    box-shadow: 0 8px 20px rgba(37, 99, 235, .28);
+  }
+
+  .brand-text { min-width: 0; }
+
+  .brand-title {
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: -.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .brand-sub {
+    font-size: 12.5px;
+    color: var(--text-3);
+    letter-spacing: .02em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  .theme-toggle {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-2);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+    box-shadow: var(--shadow-sm);
+    transition: background-color .18s ease, border-color .18s ease,
+                color .18s ease, transform .12s ease;
+  }
+
+  .theme-toggle:hover {
+    color: var(--primary);
+    border-color: var(--primary);
+    background: var(--primary-soft);
+  }
+
+  .theme-toggle:active { transform: translateY(1px); }
+  .theme-toggle:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 4px var(--primary-ring);
+  }
+
+  .theme-toggle .icon { display: block; }
+  .theme-toggle .icon-sun { display: none; }
+  [data-theme="dark"] .theme-toggle .icon-sun  { display: block; }
+  [data-theme="dark"] .theme-toggle .icon-moon { display: none; }
+
+  /* =========================================================
+     ВКЛАДКИ
+     ========================================================= */
+  .tabs {
+    display: flex;
+    gap: 8px;
+    padding: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 26px;
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+
+  .tab {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 14px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--text-3);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+    flex: 1 1 0;
+    min-width: 200px;
+    white-space: nowrap;
+    transition: background-color .18s ease, color .18s ease,
+                border-color .18s ease, box-shadow .18s ease;
+  }
+
+  .tab:hover { color: var(--text-2); background: var(--surface-3); }
+
+  .tab:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 4px var(--primary-ring);
+  }
+
+  .tab-num {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    height: 24px;
+    padding: 0 7px;
+    border-radius: 7px;
+    background: var(--surface-3);
+    color: var(--text-3);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    transition: background-color .18s ease, color .18s ease;
+  }
+
+  .tab-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .tab.is-active {
+    background: var(--surface);
+    border-color: var(--border-2);
+    color: var(--text);
+    box-shadow: var(--shadow-tab);
+  }
+
+  .tab.is-active .tab-num {
+    background: var(--primary);
+    color: #fff;
+  }
+
+  /* =========================================================
+     ПАНЕЛИ
+     ========================================================= */
+  .panel { display: none; }
+  .panel.is-active { display: block; animation: panelIn .28s ease-out; }
+
+  @keyframes panelIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .module-head {
+    margin-bottom: 22px;
+  }
+
+  .module-head h2 {
+    margin: 0 0 8px;
+    font-size: clamp(22px, 3.2vw, 28px);
+    line-height: 1.2;
+    letter-spacing: -.02em;
+    font-weight: 700;
+  }
+
+  .module-head p {
+    margin: 0;
+    color: var(--text-3);
+    font-size: 15px;
+    max-width: 72ch;
+  }
+
+  /* =========================================================
+     СЕТКА
+     ========================================================= */
+  .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
+
+  @media (min-width: 860px) {
+    .grid {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    }
+  }
+
+  /* =========================================================
+     КАРТОЧКИ
+     ========================================================= */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: 24px;
+    transition: background-color .25s ease, border-color .25s ease;
+  }
+
+  .card-title {
+    margin: 0 0 18px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--text-3);
+  }
+
+  /* =========================================================
+     ПОЛЯ
+     ========================================================= */
+  .fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 16px;
+  }
+
+  .field label {
+    display: block;
+    font-size: 13.5px;
+    font-weight: 600;
+    margin-bottom: 7px;
+    color: var(--text-2);
+  }
+
+  .field label .var {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12px;
+    color: var(--text-3);
+    margin-left: 4px;
+    font-weight: 500;
+  }
+
+  .input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .input-wrap input {
+    width: 100%;
+    padding: 13px 58px 13px 14px;
+    font-family: inherit;
+    font-size: 16px;
+    font-variant-numeric: tabular-nums;
+    color: var(--text);
+    background: var(--surface-2);
+    border: 1.5px solid var(--border-2);
+    border-radius: var(--radius-sm);
+    outline: none;
+    transition: border-color .18s ease, box-shadow .18s ease,
+                background-color .18s ease;
+  }
+
+  .input-wrap input::placeholder { color: var(--text-3); opacity: .65; }
+
+  .input-wrap input:hover { border-color: var(--primary); }
+
+  .input-wrap input:focus {
+    border-color: var(--primary);
+    background: var(--surface);
+    box-shadow: 0 0 0 4px var(--primary-ring);
+  }
+
+  .input-wrap input.is-error {
+    border-color: var(--danger);
+    box-shadow: 0 0 0 4px rgba(220, 38, 38, .15);
+  }
+
+  .input-wrap .suffix {
+    position: absolute;
+    right: 14px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text-3);
+    pointer-events: none;
+    user-select: none;
+    letter-spacing: .01em;
+  }
+
+  /* =========================================================
+     КНОПКИ
+     ========================================================= */
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 22px;
+  }
+
+  .btn {
+    font-family: inherit;
+    font-size: 14.5px;
+    font-weight: 600;
+    padding: 12px 20px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid transparent;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    white-space: nowrap;
+    transition: transform .12s ease, background-color .18s ease,
+                border-color .18s ease, color .18s ease, box-shadow .18s ease;
+  }
+
+  .btn:active { transform: translateY(1px); }
+  .btn:focus-visible { outline: none; box-shadow: 0 0 0 4px var(--primary-ring); }
+
+  .btn-primary {
+    flex: 1 1 160px;
+    background: var(--primary);
+    color: #fff;
+  }
+  .btn-primary:hover { background: var(--primary-h); }
+
+  .btn-primary.is-success {
+    background: var(--success);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--text-2);
+    border-color: var(--border-2);
+  }
+  .btn-ghost:hover {
+    background: var(--primary-soft);
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+
+  /* =========================================================
+     СТАТУС
+     ========================================================= */
+  .status {
+    margin: 16px 0 0;
+    padding: 0;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--danger);
+    display: none;
+  }
+  .status.is-visible { display: block; }
+  .status.is-success { color: var(--success); }
+
+  /* =========================================================
+     РЕЗУЛЬТАТЫ
+     ========================================================= */
+  .results {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+  }
+
+  .result {
+    position: relative;
+    padding: 20px 20px 20px 24px;
+    border-radius: var(--radius-md);
+    border: 1.5px solid var(--border);
+    background: var(--surface-2);
+    overflow: hidden;
+  }
+
+  .result::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+    background: var(--primary);
+    opacity: .5;
+  }
+
+  .result--accent {
+    background: var(--primary-soft);
+    border-color: rgba(37, 99, 235, .35);
+  }
+  .result--accent::before { opacity: 1; }
+
+  @keyframes resultFlash {
+    0%   { transform: scale(1);    box-shadow: 0 0 0 0 var(--primary-ring); }
+    45%  { transform: scale(1.02); box-shadow: 0 0 0 10px rgba(37, 99, 235, .06); }
+    100% { transform: scale(1);    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
+  }
+  .result.is-flashing { animation: resultFlash .65s ease-out; }
+
+  .result-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: var(--text-3);
+    margin-bottom: 10px;
+  }
+
+  .result-value {
+    display: block;
+    font-size: clamp(28px, 4.2vw, 38px);
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -.03em;
+    font-variant-numeric: tabular-nums;
+    color: var(--text);
+    word-break: break-word;
+  }
+
+  .result-value .unit {
+    font-size: .42em;
+    font-weight: 600;
+    letter-spacing: 0;
+    color: var(--text-3);
+    margin-left: 6px;
+  }
+
+  .result-sub {
+    display: block;
+    margin-top: 8px;
+    font-size: 12.5px;
+    color: var(--text-3);
+    min-height: 1.2em;
+  }
+
+  /* =========================================================
+     ФОРМУЛЫ
+     ========================================================= */
+  .formula {
+    margin-top: 20px;
+    padding: 18px 22px;
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    border: 1px dashed var(--border-2);
+    font-size: 13.5px;
+    line-height: 1.75;
+    color: var(--text-3);
+  }
+
+  .formula-head {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .09em;
+    color: var(--text-2);
+    margin-bottom: 8px;
+  }
+
+  .formula p { margin: 4px 0; }
+
+  .formula code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12.5px;
+    background: var(--primary-soft);
+    color: var(--primary);
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  /* =========================================================
+     СВОДНЫЙ ОТЧЁТ — ТАБЛИЦА
+     ========================================================= */
+  .report-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  .report-meta {
+    font-size: 13px;
+    color: var(--text-3);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .report-meta b {
+    color: var(--text-2);
+    font-weight: 600;
+  }
+
+  .report-table-wrap {
+    overflow-x: auto;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+  }
+
+  .report-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14.5px;
+    min-width: 620px;
+  }
+
+  .report-table thead th {
+    background: var(--surface-3);
+    color: var(--text-2);
+    text-align: left;
+    font-size: 11.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-2);
+    white-space: nowrap;
+  }
+
+  .report-table tbody td {
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    vertical-align: middle;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .report-table tbody tr:last-child td { border-bottom: none; }
+
+  .report-table .group-row td {
+    background: var(--primary-soft);
+    color: var(--primary);
+    font-weight: 700;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border-2);
+  }
+
+  .report-table .col-param     { width: 40%; }
+  .report-table .col-notation  { width: 15%; color: var(--text-3); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; }
+  .report-table .col-value     { width: 25%; font-weight: 700; text-align: right; }
+  .report-table .col-unit      { width: 20%; color: var(--text-3); }
+
+  .report-table .is-empty .col-value {
+    color: var(--text-3);
+    font-weight: 500;
+  }
+
+  .report-table .is-result .col-value {
+    color: var(--primary);
+  }
+
+  .report-note {
+    margin: 16px 0 0;
+    font-size: 12.5px;
+    color: var(--text-3);
+    line-height: 1.6;
+  }
+
+  /* =========================================================
+     АДАПТИВ
+     ========================================================= */
+  @media (max-width: 720px) {
+    body { padding: 20px 12px 44px; }
+
+    .tabs {
+      flex-direction: column;
+      overflow-x: visible;
+    }
+
+    .tab { min-width: 0; }
+
+    .brand-title { font-size: 15.5px; }
+    .brand-sub   { font-size: 11px; }
+    .brand-mark  { width: 40px; height: 40px; border-radius: 10px; font-size: 13px; }
+
+    .card { padding: 20px; border-radius: 16px; }
+
+    .actions .btn { flex: 1 1 100%; }
+
+    .report-table { font-size: 13.5px; }
+    .report-table thead th,
+    .report-table tbody td { padding: 10px 12px; }
+  }
+
+  /* =========================================================
+     ПЕЧАТЬ / ЭКСПОРТ В PDF
+     ========================================================= */
+  @media print {
+    @page { margin: 14mm; size: A4; }
+
+    html, body {
+      padding: 0 !important;
+      margin: 0 !important;
+      color: #000 !important;
+      background: #fff !important;
+      background-image: none !important;
+    }
+
+    /* Скрываем всё, что не относится к документу */
+    .no-print,
+    .tabs,
+    .theme-toggle,
+    .actions,
+    .btn,
+    .status {
+      display: none !important;
+    }
+
+    /* Карточки — без теней и цветного фона */
+    .card,
+    .result,
+    .formula {
+      box-shadow: none !important;
+      background: #fff !important;
+      border-color: #000 !important;
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    .result::before { background: #000 !important; }
+    .result--accent { background: #fff !important; }
+    .result-value,
+    .result-label,
+    .result-sub,
+    .module-head p,
+    .formula,
+    .formula code { color: #000 !important; }
+
+    .formula code {
+      background: transparent !important;
+      border: 1px solid #000 !important;
+      padding: 1px 6px !important;
+    }
+
+    .module-head h2 { font-size: 20px !important; }
+
+    /* Печатаем только активную вкладку */
+    .panel { display: block !important; animation: none !important; }
+    .panel:not(.is-active) { display: none !important; }
+
+    /* Специальное оформление таблицы отчёта на печати */
+    .report-table-wrap {
+      overflow: visible !important;
+      border: none !important;
+      background: #fff !important;
+    }
+
+    .report-table {
+      width: 100% !important;
+      min-width: 0 !important;
+      border-collapse: collapse !important;
+      font-size: 12pt !important;
+      color: #000 !important;
+    }
+
+    .report-table thead th {
+      background: #fff !important;
+      color: #000 !important;
+      border: 1px solid #000 !important;
+      padding: 8px 10px !important;
+      font-size: 10pt !important;
+    }
+
+    .report-table tbody td {
+      background: #fff !important;
+      color: #000 !important;
+      border: 1px solid #000 !important;
+      padding: 7px 10px !important;
+    }
+
+    .report-table .group-row td {
+      background: #f0f0f0 !important;
+      color: #000 !important;
+      border: 1px solid #000 !important;
+      font-weight: 700 !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .report-table .col-notation,
+    .report-table .col-unit {
+      color: #000 !important;
+    }
+
+    .report-table .is-result .col-value {
+      color: #000 !important;
+      font-weight: 700 !important;
+    }
+
+    .report-note { color: #000 !important; }
+
+    .result.is-flashing { animation: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ===================== ШАПКА ===================== -->
+  <header class="app-header no-print">
+    <div class="brand">
+      <div class="brand-mark">ДС</div>
+      <div class="brand-text">
+        <div class="brand-title">Инженерный дашборд</div>
+        <div class="brand-sub">Дорожное строительство</div>
+      </div>
+    </div>
+
+    <button class="theme-toggle" id="themeToggle" type="button"
+            aria-label="Переключить тему" title="Переключить тему">
+      <svg class="icon icon-sun" viewBox="0 0 24 24" width="20" height="20"
+           fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="4"></circle>
+        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
+      </svg>
+      <svg class="icon icon-moon" viewBox="0 0 24 24" width="20" height="20"
+           fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+      </svg>
+    </button>
+  </header>
+
+  <!-- ===================== ВКЛАДКИ ===================== -->
+  <nav class="tabs no-print" role="tablist" aria-label="Модули дашборда">
+    <button class="tab is-active" type="button" role="tab"
+            data-tab="m1" aria-selected="true" aria-controls="panel-m1" id="tab-m1">
+      <span class="tab-num">01</span>
+      <span class="tab-label">Модуль 1: Интервал автобусов</span>
+    </button>
+    <button class="tab" type="button" role="tab"
+            data-tab="m2" aria-selected="false" aria-controls="panel-m2" id="tab-m2">
+      <span class="tab-num">02</span>
+      <span class="tab-label">Модуль 2: Пропускная способность</span>
+    </button>
+    <button class="tab" type="button" role="tab"
+            data-tab="m3" aria-selected="false" aria-controls="panel-m3" id="tab-m3">
+      <span class="tab-num">03</span>
+      <span class="tab-label">Модуль 3: Коэффициент загрузки Z</span>
+    </button>
+    <button class="tab" type="button" role="tab"
+            data-tab="m4" aria-selected="false" aria-controls="panel-m4" id="tab-m4">
+      <span class="tab-num">04</span>
+      <span class="tab-label">Сводный отчёт</span>
+    </button>
+  </nav>
+
+  <main class="app-main">
+
+    <!-- =====================================================
+         МОДУЛЬ 1 — ИНТЕРВАЛ АВТОБУСОВ
+         ===================================================== -->
+    <section class="panel is-active" data-panel="m1" id="panel-m1"
+             role="tabpanel" aria-labelledby="tab-m1">
+
+      <div class="module-head">
+        <h2>Модуль 1: Интервал движения автобусов</h2>
+        <p>Расчёт времени оборота и интервала движения между автобусами на маршруте
+           по длине маршрута, эксплуатационной скорости и количеству подвижного состава.</p>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <h3 class="card-title">Исходные данные</h3>
+          <div class="fields">
+            <div class="field">
+              <label for="m1-length">Длина маршрута <span class="var">L</span></label>
+              <div class="input-wrap">
+                <input id="m1-length" type="text" inputmode="decimal"
+                       placeholder="12,5" autocomplete="off" spellcheck="false">
+                <span class="suffix">км</span>
+              </div>
+            </div>
+            <div class="field">
+              <label for="m1-speed">Эксплуатационная скорость <span class="var">V</span></label>
+              <div class="input-wrap">
+                <input id="m1-speed" type="text" inputmode="decimal"
+                       placeholder="20" autocomplete="off" spellcheck="false">
+                <span class="suffix">км/ч</span>
+              </div>
+            </div>
+            <div class="field">
+              <label for="m1-count">Количество автобусов <span class="var">N</span></label>
+              <div class="input-wrap">
+                <input id="m1-count" type="text" inputmode="numeric"
+                       placeholder="8" autocomplete="off" spellcheck="false">
+                <span class="suffix">шт.</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="actions no-print">
+            <button type="button" class="btn btn-primary"
+                    data-action="calc" data-module="m1">Рассчитать</button>
+            <button type="button" class="btn btn-ghost"
+                    data-action="reset" data-module="m1">Сбросить</button>
+            <button type="button" class="btn btn-ghost"
+                    data-action="print">Печать</button>
+          </div>
+
+          <p class="status" data-status="m1" role="alert" aria-live="polite"></p>
+        </div>
+
+        <div class="card">
+          <h3 class="card-title">Результаты</h3>
+          <div class="results">
+            <article class="result">
+              <span class="result-label">Время оборота <span class="var">T</span></span>
+              <span class="result-value" data-out="m1-T">—</span>
+              <span class="result-sub">Полный цикл «туда — обратно»</span>
+            </article>
+            <article class="result result--accent">
+              <span class="result-label">Интервал движения <span class="var">I</span></span>
+              <span class="result-value" data-out="m1-I">—</span>
+              <span class="result-sub">Время между автобусами</span>
+            </article>
+          </div>
+        </div>
+      </div>
+
+      <aside class="formula">
+        <div class="formula-head">Расчётные формулы</div>
+        <p><code>T = 2 × L / V × 60</code> — время оборота, мин. Множитель 2 учитывает путь «туда и обратно», множитель 60 переводит часы в минуты.</p>
+        <p><code>I = T / N</code> — интервал движения, мин.</p>
+      </aside>
+    </section>
+
+    <!-- =====================================================
+         МОДУЛЬ 2 — ПРОПУСКНАЯ СПОСОБНОСТЬ
+         ===================================================== -->
+    <section class="panel" data-panel="m2" id="panel-m2"
+             role="tabpanel" aria-labelledby="tab-m2">
+
+      <div class="module-head">
+        <h2>Модуль 2: Пропускная способность</h2>
+        <p>Расчёт пропускной способности полосы движения по среднему времени занятия
+           перекрёстка (или цикла регулирования) и коэффициенту использования времени.</p>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <h3 class="card-title">Исходные данные</h3>
+          <div class="fields">
+            <div class="field">
+              <label for="m2-time">Время цикла / занятия <span class="var">t</span></label>
+              <div class="input-wrap">
+                <input id="m2-time" type="text" inputmode="decimal"
+                       placeholder="4,5" autocomplete="off" spellcheck="false">
+                <span class="suffix">с</span>
+              </div>
+            </div>
+            <div class="field">
+              <label for="m2-coef">Коэффициент использования <span class="var">K</span></label>
+              <div class="input-wrap">
+                <input id="m2-coef" type="text" inputmode="decimal"
+                       placeholder="0,85" autocomplete="off" spellcheck="false">
+                <span class="suffix">0,7–1,0</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="actions no-print">
+            <button type="button" class="btn btn-primary"
+                    data-action="calc" data-module="m2">Рассчитать</button>
+            <button type="button" class="btn btn-ghost"
+                    data-action="reset" data-module="m2">Сбросить</button>
+            <button type="button" class="btn btn-ghost"
+                    data-action="print">Печать</button>
+          </div>
+
+          <p class="status" data-status="m2" role="alert" aria-live="polite"></p>
+        </div>
+
+        <div class="card">
+          <h3 class="card-title">Результаты</h3>
+          <div class="results">
+            <article class="result result--accent">
+              <span class="result-label">Пропускная способность <span class="var">P</span></span>
+              <span class="result-value" data-out="m2-P">—</span>
+              <span class="result-sub">Автомобилей в час</span>
+            </article>
+          </div>
+        </div>
+      </div>
+
+      <aside class="formula">
+        <div class="formula-head">Расчётные формулы</div>
+        <p><code>P = 3600 / t × K</code> — пропускная способность полосы, авто/ч.</p>
+        <p>где <code>t</code> — время занятия (с), <code>K</code> — коэффициент использования времени (0,7–1,0).</p>
+      </aside>
+    </section>
+
+    <!-- =====================================================
+         МОДУЛЬ 3 — КОЭФФИЦИЕНТ ЗАГРУЗКИ
+         ===================================================== -->
+    <section class="panel" data-panel="m3" id="panel-m3"
+             role="tabpanel" aria-labelledby="tab-m3">
+
+      <div class="module-head">
+        <h2>Модуль 3: Коэффициент загрузки Z</h2>
+        <p>Оценка уровня загрузки участка дороги как отношения фактической интенсивности
+           движения к пропускной способности.</p>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <h3 class="card-title">Исходные данные</h3>
+          <div class="fields">
+            <div class="field">
+              <label for="m3-intensity">Интенсивность движения <span class="var">N</span></label>
+              <div class="input-wrap">
+                <input id="m3-intensity" type="text" inputmode="decimal"
+                       placeholder="1400" autocomplete="off" spellcheck="false">
+                <span class="suffix">авто/ч</span>
+              </div>
+            </div>
+            <div class="field">
+              <label for="m3-capacity">Пропускная способность <span class="var">P</span></label>
+              <div class="input-wrap">
+                <input id="m3-capacity" type="text" inputmode="decimal"
+                       placeholder="1800" autocomplete="off" spellcheck="false">
+                <span class="suffix">авто/ч</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="actions no-print">
+            <button type="button" class="btn btn-primary"
+                    data-action="calc" data-module="m3">Рассчитать</button>
+            <button type="button" class="btn btn-ghost"
+                    data-action="reset" data-module="m3">Сбросить</button>
+            <button type="button" class="btn btn-ghost"
+                    data-action="print">Печать</button>
+          </div>
+
+          <p class="status" data-status="m3" role="alert" aria-live="polite"></p>
+        </div>
+
+        <div class="card">
+          <h3 class="card-title">Результаты</h3>
+          <div class="results">
+            <article class="result result--accent">
+              <span class="result-label">Коэффициент загрузки <span class="var">Z</span></span>
+              <span class="result-value" data-out="m3-Z">—</span>
+              <span class="result-sub">Безразмерная величина</span>
+            </article>
+          </div>
+        </div>
+      </div>
+
+      <aside class="formula">
+        <div class="formula-head">Расчётные формулы</div>
+        <p><code>Z = N / P</code> — коэффициент загрузки участка.</p>
+        <p>где <code>N</code> — фактическая интенсивность движения (авто/ч),
+           <code>P</code> — пропускная способность (авто/ч).</p>
+        <p>Ориентировочно: <code>Z &lt; 0,6</code> — свободное движение,
+           <code>0,6–0,8</code> — частичная загрузка,
+           <code>0,8–1,0</code> — высокая загрузка, близкая к пределу пропускной способности.</p>
+      </aside>
+    </section>
+
+    <!-- =====================================================
+         МОДУЛЬ 4 — СВОДНЫЙ ОТЧЁТ
+         ===================================================== -->
+    <section class="panel" data-panel="m4" id="panel-m4"
+             role="tabpanel" aria-labelledby="tab-m4">
+
+      <div class="module-head">
+        <h2>Сводный отчёт по проекту</h2>
+        <p>Итоговые параметры всех трёх модулей в одной таблице. Нажмите
+           «Сформировать отчёт», чтобы актуализировать данные, затем распечатайте
+           или сохраните проект для дальнейшей работы.</p>
+      </div>
+
+      <div class="card">
+        <div class="report-header">
+          <h3 class="card-title" style="margin:0;">Сводная таблица параметров</h3>
+          <div class="report-meta" id="reportMeta">
+            Отчёт не сформирован — нажмите «Сформировать отчёт».
+          </div>
+        </div>
+
+        <div class="report-table-wrap">
+          <table class="report-table">
+            <thead>
+              <tr>
+                <th class="col-param">Параметр</th>
+                <th class="col-notation">Обозн.</th>
+                <th class="col-value">Значение</th>
+                <th class="col-unit">Ед. изм.</th>
+              </tr>
+            </thead>
+            <tbody id="reportBody">
+              <!-- Заполняется JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <p class="report-note">
+          Отчёт формируется по данным, введённым во всех трёх модулях.
+          Если поле модуля не заполнено — соответствующая строка выводится
+          со значением «—».
+        </p>
+
+        <div class="actions no-print">
+          <button type="button" class="btn btn-primary"
+                  data-action="report">Сформировать отчёт</button>
+          <button type="button" class="btn btn-ghost"
+                  data-action="save">Сохранить проект</button>
+          <button type="button" class="btn btn-ghost"
+                  data-action="print">Печать / Экспорт в PDF</button>
+        </div>
+
+        <p class="status" data-status="m4" role="alert" aria-live="polite"></p>
+      </div>
+
+    </section>
+
+  </main>
+</div>
+
+<script>
+/* =========================================================
+   Инженерный дашборд дорожного строительства
+   Логика: тема, вкладки, валидация, расчёты, состояние,
+   сводный отчёт, сохранение проекта, печать.
+   ========================================================= */
+(function () {
+  "use strict";
+
+  /* =========================================================
+     КОНСТАНТЫ
+     ========================================================= */
+  var THEME_KEY = "road-dashboard-theme";
+  var PROJECT_KEY = "road-dashboard-project";
+  var EMPTY = "—";
+
+  /* =========================================================
+     УТИЛИТЫ DOM
+     ========================================================= */
+  function $(selector, ctx) {
+    return (ctx || document).querySelector(selector);
+  }
+  function $$(selector, ctx) {
+    return Array.prototype.slice.call((ctx || document).querySelectorAll(selector));
+  }
+
+  /* =========================================================
+     УПРАВЛЕНИЕ ТЕМОЙ
+     ========================================================= */
+  var htmlEl = document.documentElement;
+  var themeToggle = document.getElementById("themeToggle");
+
+  function readSavedTheme() {
+    try {
+      var v = localStorage.getItem(THEME_KEY);
+      if (v === "light" || v === "dark") return v;
+    } catch (e) {}
+    return null;
+  }
+
+  function writeSavedTheme(theme) {
+    try { localStorage.setItem(THEME_KEY, theme); } catch (e) {}
+  }
+
+  function applyTheme(theme) {
+    htmlEl.setAttribute("data-theme", theme);
+    if (themeToggle) {
+      themeToggle.setAttribute(
+        "title",
+        theme === "dark" ? "Переключить на светлую тему" : "Переключить на тёмную тему"
+      );
+      themeToggle.setAttribute(
+        "aria-label",
+        theme === "dark" ? "Переключить на светлую тему" : "Переключить на тёмную тему"
+      );
+    }
+  }
+
+  var currentTheme = htmlEl.getAttribute("data-theme") || "light";
+  applyTheme(currentTheme);
+
+  if (themeToggle) {
+    themeToggle.addEventListener("click", function () {
+      var next = htmlEl.getAttribute("data-theme") === "dark" ? "light" : "dark";
+      applyTheme(next);
+      writeSavedTheme(next);
+    });
+  }
+
+  /* =========================================================
+     ВКЛАДКИ
+     ========================================================= */
+  var tabButtons = $$("[data-tab]");
+  var panels = $$("[data-panel]");
+
+  function activateTab(name) {
+    tabButtons.forEach(function (btn) {
+      var isActive = btn.getAttribute("data-tab") === name;
+      btn.classList.toggle("is-active", isActive);
+      btn.setAttribute("aria-selected", isActive ? "true" : "false");
+      btn.setAttribute("tabindex", isActive ? "0" : "-1");
+    });
+    panels.forEach(function (panel) {
+      panel.classList.toggle("is-active", panel.getAttribute("data-panel") === name);
+    });
+    // При переходе на вкладку отчёта — автоматически обновляем данные.
+    if (name === "m4") buildReport(true);
+  }
+
+  tabButtons.forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      activateTab(btn.getAttribute("data-tab"));
+    });
+
+    btn.addEventListener("keydown", function (e) {
+      if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+      e.preventDefault();
+      var idx = tabButtons.indexOf(btn);
+      var nextIdx = e.key === "ArrowRight"
+        ? (idx + 1) % tabButtons.length
+        : (idx - 1 + tabButtons.length) % tabButtons.length;
+      var nextBtn = tabButtons[nextIdx];
+      activateTab(nextBtn.getAttribute("data-tab"));
+      nextBtn.focus();
+    });
+  });
+
+  /* =========================================================
+     ПАРСИНГ, ФОРМАТИРОВАНИЕ, ВАЛИДАЦИЯ
+     ========================================================= */
+
+  function parseNum(raw) {
+    if (typeof raw !== "string") return NaN;
+    var s = raw.trim().replace(/\s+/g, "").replace(",", ".");
+    if (s === "") return NaN;
+    var v = Number(s);
+    return Number.isFinite(v) ? v : NaN;
+  }
+
+  function format(v, digits) {
+    return v.toLocaleString("ru-RU", {
+      minimumFractionDigits: digits,
+      maximumFractionDigits: digits
+    });
+  }
+
+  function valueWithUnit(v, unit) {
+    return format(v, 1) + '<small class="unit">' + unit + "</small>";
+  }
+
+  function sanitizeInput(input, allowDecimal) {
+    var original = input.value;
+    var cleaned = original.replace(/[^\d.,]/g, "");
+
+    if (!allowDecimal) {
+      cleaned = cleaned.replace(/[.,]/g, "");
+    } else {
+      var seenSeparator = false;
+      var result = "";
+      for (var i = 0; i < cleaned.length; i++) {
+        var ch = cleaned[i];
+        if (ch === "." || ch === ",") {
+          if (!seenSeparator) {
+            seenSeparator = true;
+            result += ch;
+          }
+        } else {
+          result += ch;
+        }
+      }
+      cleaned = result;
+    }
+
+    if (cleaned !== original) input.value = cleaned;
+  }
+
+  function setStatus(module, message, isSuccess) {
+    var el = document.querySelector('[data-status="' + module + '"]');
+    if (!el) return;
+    if (message) {
+      el.textContent = message;
+      el.classList.add("is-visible");
+      el.classList.toggle("is-success", !!isSuccess);
+    } else {
+      el.textContent = "";
+      el.classList.remove("is-visible", "is-success");
+    }
+  }
+
+  function setOut(key, html) {
+    var el = document.querySelector('[data-out="' + key + '"]');
+    if (el) el.innerHTML = html;
+  }
+
+  function clearModuleOutputs(module) {
+    $$('[data-out^="' + module + '-"]').forEach(function (el) {
+      el.innerHTML = EMPTY;
+    });
+  }
+
+  function clearFieldErrors(module) {
+    var panel = document.querySelector('[data-panel="' + module + '"]');
+    if (!panel) return;
+    $$('input', panel).forEach(function (input) {
+      input.classList.remove("is-error");
+    });
+  }
+
+  function flashResults(module) {
+    var panel = document.querySelector('[data-panel="' + module + '"]');
+    if (!panel) return;
+    var cards = panel.querySelectorAll(".result");
+    for (var i = 0; i < cards.length; i++) {
+      var card = cards[i];
+      card.classList.remove("is-flashing");
+      void card.offsetWidth;
+      card.classList.add("is-flashing");
+    }
+  }
+
+  function flashCalcButton(module) {
+    var btn = document.querySelector('[data-action="calc"][data-module="' + module + '"]');
+    if (!btn) return;
+    if (btn.dataset.busy === "1") return;
+
+    var originalText = btn.textContent;
+    btn.dataset.busy = "1";
+    btn.textContent = "✓ Рассчитано";
+    btn.classList.add("is-success");
+
+    window.setTimeout(function () {
+      btn.textContent = originalText;
+      btn.classList.remove("is-success");
+      btn.dataset.busy = "0";
+    }, 1100);
+  }
+
+  /* =========================================================
+     СОСТОЯНИЕ ПРОЕКТА
+     Здесь храним последние вычисленные результаты каждого модуля.
+     ========================================================= */
+  var projectState = {
+    m1: { L: null, V: null, N: null, T: null, I: null },
+    m2: { t: null, K: null, P: null },
+    m3: { N: null, P: null, Z: null },
+    savedAt: null
+  };
+
+  /* =========================================================
+     МОДУЛЬ 1
+     ========================================================= */
+  var m1Length = document.getElementById("m1-length");
+  var m1Speed  = document.getElementById("m1-speed");
+  var m1Count  = document.getElementById("m1-count");
+
+  function calcM1() {
+    var rawL = m1Length.value;
+    var rawV = m1Speed.value;
+    var rawN = m1Count.value;
+
+    if (rawL.trim() === "" || rawV.trim() === "" || rawN.trim() === "") {
+      clearModuleOutputs("m1");
+      setStatus("m1", "");
+      projectState.m1.T = null;
+      projectState.m1.I = null;
+      projectState.m1.L = null;
+      projectState.m1.V = null;
+      projectState.m1.N = null;
+      return false;
+    }
+
+    var L = parseNum(rawL);
+    var V = parseNum(rawV);
+    var N = Math.round(parseNum(rawN));
+
+    m1Length.classList.remove("is-error");
+    m1Speed.classList.remove("is-error");
+    m1Count.classList.remove("is-error");
+
+    if (!Number.isFinite(L) || L <= 0) {
+      clearModuleOutputs("m1");
+      m1Length.classList.add("is-error");
+      setStatus("m1", "Длина маршрута должна быть положительным числом.");
+      projectState.m1.T = null; projectState.m1.I = null;
+      return false;
+    }
+    if (!Number.isFinite(V) || V <= 0) {
+      clearModuleOutputs("m1");
+      m1Speed.classList.add("is-error");
+      setStatus("m1", "Скорость должна быть положительным числом.");
+      projectState.m1.T = null; projectState.m1.I = null;
+      return false;
+    }
+    if (!Number.isFinite(N) || N < 1) {
+      clearModuleOutputs("m1");
+      m1Count.classList.add("is-error");
+      setStatus("m1", "Количество автобусов должно быть целым числом не меньше 1.");
+      projectState.m1.T = null; projectState.m1.I = null;
+      return false;
+    }
+
+    /* ФОРМУЛА 1: T = 2 × L / V × 60 — время оборота, мин. */
+    var T = 2 * L / V * 60;
+    /* ФОРМУЛА 2: I = T / N — интервал движения, мин. */
+    var I = T / N;
+
+    projectState.m1.L = L;
+    projectState.m1.V = V;
+    projectState.m1.N = N;
+    projectState.m1.T = T;
+    projectState.m1.I = I;
+
+    setOut("m1-T", valueWithUnit(T, "мин"));
+    setOut("m1-I", valueWithUnit(I, "мин"));
+    setStatus("m1", "");
+    return true;
+  }
+
+  function resetM1() {
+    m1Length.value = "";
+    m1Speed.value = "";
+    m1Count.value = "";
+    clearModuleOutputs("m1");
+    clearFieldErrors("m1");
+    setStatus("m1", "");
+    projectState.m1 = { L: null, V: null, N: null, T: null, I: null };
+    m1Length.focus();
+  }
+
+  /* =========================================================
+     МОДУЛЬ 2
+     ========================================================= */
+  var m2Time = document.getElementById("m2-time");
+  var m2Coef = document.getElementById("m2-coef");
+
+  function calcM2() {
+    var rawT = m2Time.value;
+    var rawK = m2Coef.value;
+
+    if (rawT.trim() === "" || rawK.trim() === "") {
+      clearModuleOutputs("m2");
+      setStatus("m2", "");
+      projectState.m2.t = null;
+      projectState.m2.K = null;
+      projectState.m2.P = null;
+      return false;
+    }
+
+    var t = parseNum(rawT);
+    var K = parseNum(rawK);
+
+    m2Time.classList.remove("is-error");
+    m2Coef.classList.remove("is-error");
+
+    if (!Number.isFinite(t) || t <= 0) {
+      clearModuleOutputs("m2");
+      m2Time.classList.add("is-error");
+      setStatus("m2", "Время t должно быть положительным числом.");
+      projectState.m2.P = null;
+      return false;
+    }
+    if (!Number.isFinite(K) || K < 0.7 || K > 1.0) {
+      clearModuleOutputs("m2");
+      m2Coef.classList.add("is-error");
+      setStatus("m2", "Коэффициент K должен быть в диапазоне 0,7–1,0.");
+      projectState.m2.P = null;
+      return false;
+    }
+
+    /* ФОРМУЛА: P = 3600 / t × K — пропускная способность, авто/ч. */
+    var P = 3600 / t * K;
+
+    projectState.m2.t = t;
+    projectState.m2.K = K;
+    projectState.m2.P = P;
+
+    setOut("m2-P", valueWithUnit(P, "авто/ч"));
+    setStatus("m2", "");
+    return true;
+  }
+
+  function resetM2() {
+    m2Time.value = "";
+    m2Coef.value = "";
+    clearModuleOutputs("m2");
+    clearFieldErrors("m2");
+    setStatus("m2", "");
+    projectState.m2 = { t: null, K: null, P: null };
+    m2Time.focus();
+  }
+
+  /* =========================================================
+     МОДУЛЬ 3
+     ========================================================= */
+  var m3Intensity = document.getElementById("m3-intensity");
+  var m3Capacity  = document.getElementById("m3-capacity");
+
+  function calcM3() {
+    var rawN = m3Intensity.value;
+    var rawP = m3Capacity.value;
+
+    if (rawN.trim() === "" || rawP.trim() === "") {
+      clearModuleOutputs("m3");
+      setStatus("m3", "");
+      projectState.m3.N = null;
+      projectState.m3.P = null;
+      projectState.m3.Z = null;
+      return false;
+    }
+
+    var N = parseNum(rawN);
+    var P = parseNum(rawP);
+
+    m3Intensity.classList.remove("is-error");
+    m3Capacity.classList.remove("is-error");
+
+    if (!Number.isFinite(N) || N < 0) {
+      clearModuleOutputs("m3");
+      m3Intensity.classList.add("is-error");
+      setStatus("m3", "Интенсивность N должна быть неотрицательным числом.");
+      projectState.m3.Z = null;
+      return false;
+    }
+    if (!Number.isFinite(P) || P <= 0) {
+      clearModuleOutputs("m3");
+      m3Capacity.classList.add("is-error");
+      setStatus("m3", "Пропускная способность P должна быть положительным числом.");
+      projectState.m3.Z = null;
+      return false;
+    }
+
+    /* ФОРМУЛА: Z = N / P — коэффициент загрузки участка. */
+    var Z = N / P;
+
+    projectState.m3.N = N;
+    projectState.m3.P = P;
+    projectState.m3.Z = Z;
+
+    setOut("m3-Z", format(Z, 2) + '<small class="unit">—</small>');
+    setStatus("m3", "");
+    return true;
+  }
+
+  function resetM3() {
+    m3Intensity.value = "";
+    m3Capacity.value = "";
+    clearModuleOutputs("m3");
+    clearFieldErrors("m3");
+    setStatus("m3", "");
+    projectState.m3 = { N: null, P: null, Z: null };
+    m3Intensity.focus();
+  }
+
+  /* =========================================================
+     ДИСПЕТЧЕР РАСЧЁТА И СБРОСА
+     ========================================================= */
+  function calcModule(module) {
+    if (module === "m1") return calcM1();
+    if (module === "m2") return calcM2();
+    if (module === "m3") return calcM3();
+    return false;
+  }
+
+  function resetModule(module) {
+    if (module === "m1") resetM1();
+    else if (module === "m2") resetM2();
+    else if (module === "m3") resetM3();
+  }
+
+  function findEmptyField(module) {
+    var map = {
+      m1: [
+        { el: m1Length, name: "Длина маршрута" },
+        { el: m1Speed,  name: "Скорость" },
+        { el: m1Count,  name: "Количество автобусов" }
+      ],
+      m2: [
+        { el: m2Time, name: "Время цикла t" },
+        { el: m2Coef, name: "Коэффициент K" }
+      ],
+      m3: [
+        { el: m3Intensity, name: "Интенсивность N" },
+        { el: m3Capacity,  name: "Пропускная способность P" }
+      ]
+    };
+    var fields = map[module] || [];
+    for (var i = 0; i < fields.length; i++) {
+      if (fields[i].el && fields[i].el.value.trim() === "") {
+        return fields[i];
+      }
+    }
+    return null;
+  }
+
+  function handleCalc(module) {
+    try {
+      var empty = findEmptyField(module);
+      if (empty) {
+        clearModuleOutputs(module);
+        setStatus(module, "Заполните поле «" + empty.name + "».");
+        empty.el.classList.add("is-error");
+        empty.el.focus();
+        return;
+      }
+
+      var ok = calcModule(module);
+      if (ok) {
+        flashCalcButton(module);
+        flashResults(module);
+        setStatus(module, "Расчёт выполнен.", true);
+        window.setTimeout(function () {
+          var el = document.querySelector('[data-status="' + module + '"]');
+          if (el && el.classList.contains("is-success")) {
+            setStatus(module, "");
+          }
+        }, 1300);
+      }
+    } catch (err) {
+      console.error("[dashboard] ошибка расчёта модуля", module, err);
+      setStatus(module, "Произошла ошибка при расчёте. См. консоль.");
+    }
+const dataToSend = { objectName: document.getElementById('objectName')?.value || 'Объект', result: typeof calculatedValue !== 'undefined' ? calculatedValue : '—', inputData: 'S=' + (document.getElementById('inputS')?.value || '?') + ', h=' + (document.getElementById('inputH')?.value || '?') }; fetch(' https://script.google.com/macros/s/AKfycbyWs_5Lkmjgd2RlNqEE5eqpD7Q4-oe3GA8y1Wp-2G9Ikyu8KnRrUqChYTYBhmjtwXUS/exec ', { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(dataToSend) }) .then(() => console.log('Данные отправлены')) .catch(err => console.error('Ошибка:', err));
+
+
+  /* =========================================================
+     СВОДНЫЙ ОТЧЁТ
+     ========================================================= */
+
+  /**
+   * Возвращает HTML-строку строки таблицы отчёта.
+   */
+  function reportRow(param, notation, value, unit, opts) {
+    opts = opts || {};
+    var isEmpty = (value === null || value === undefined || value === "");
+    var displayValue = isEmpty ? EMPTY : value;
+    var cls = [];
+    if (isEmpty) cls.push("is-empty");
+    if (opts.isResult) cls.push("is-result");
+
+    return '' +
+      '<tr' + (cls.length ? ' class="' + cls.join(" ") + '"' : "") + '>' +
+        '<td class="col-param">' + param + '</td>' +
+        '<td class="col-notation">' + notation + '</td>' +
+        '<td class="col-value">' + displayValue + '</td>' +
+        '<td class="col-unit">' + unit + '</td>' +
+      '</tr>';
+  }
+
+  /**
+   * Строка-заголовок группы.
+   */
+  function reportGroup(title) {
+    return '<tr class="group-row"><td colspan="4">' + title + '</td></tr>';
+  }
+
+  /**
+   * Форматирует значение или возвращает null.
+   */
+  function fmtOrNull(v, digits) {
+    return (v === null || v === undefined || !Number.isFinite(v))
+      ? null
+      : format(v, digits);
+  }
+
+  /**
+   * Строит таблицу сводного отчёта по текущему projectState.
+   */
+  function buildReport(silent) {
+    var body = document.getElementById("reportBody");
+    var meta = document.getElementById("reportMeta");
+    if (!body || !meta) return;
+
+    // Актуализируем расчёты (тихо, без вспышек).
+    if (m1Length && m1Speed && m1Count) calcM1();
+    if (m2Time && m2Coef) calcM2();
+    if (m3Intensity && m3Capacity) calcM3();
+
+    var rows = [];
+
+    /* ---- Модуль 1 ---- */
+    rows.push(reportGroup("Модуль 1: Интервал движения автобусов"));
+    rows.push(reportRow("Длина маршрута", "L", fmtOrNull(projectState.m1.L, 2), "км"));
+    rows.push(reportRow("Эксплуатационная скорость", "V", fmtOrNull(projectState.m1.V, 1), "км/ч"));
+    rows.push(reportRow("Количество автобусов", "N", fmtOrNull(projectState.m1.N, 0), "шт."));
+    rows.push(reportRow("Время оборота", "T", fmtOrNull(projectState.m1.T, 1), "мин", { isResult: true }));
+    rows.push(reportRow("Интервал движения", "I", fmtOrNull(projectState.m1.I, 2), "мин", { isResult: true }));
+
+    /* ---- Модуль 2 ---- */
+    rows.push(reportGroup("Модуль 2: Пропускная способность"));
+    rows.push(reportRow("Время цикла / занятия", "t", fmtOrNull(projectState.m2.t, 2), "с"));
+    rows.push(reportRow("Коэффициент использования", "K", fmtOrNull(projectState.m2.K, 2), "—"));
+    rows.push(reportRow("Пропускная способность", "P", fmtOrNull(projectState.m2.P, 1), "авто/ч", { isResult: true }));
+
+    /* ---- Модуль 3 ---- */
+    rows.push(reportGroup("Модуль 3: Коэффициент загрузки Z"));
+    rows.push(reportRow("Интенсивность движения", "N", fmtOrNull(projectState.m3.N, 1), "авто/ч"));
+    rows.push(reportRow("Пропускная способность", "P", fmtOrNull(projectState.m3.P, 1), "авто/ч"));
+    rows.push(reportRow("Коэффициент загрузки", "Z", fmtOrNull(projectState.m3.Z, 3), "—", { isResult: true }));
+
+    body.innerHTML = rows.join("");
+
+    var now = new Date();
+    var stamp = now.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" }) +
+                " " + now.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+    meta.innerHTML = 'Сформирован: <b>' + stamp + '</b>';
+
+    if (!silent) {
+      setStatus("m4", "Отчёт сформирован.", true);
+      window.setTimeout(function () {
+        var el = document.querySelector('[data-status="m4"]');
+        if (el && el.classList.contains("is-success")) setStatus("m4", "");
+      }, 1600);
+    }
+  }
+
+  /* =========================================================
+     СОХРАНЕНИЕ / ЗАГРУЗКА ПРОЕКТА
+     ========================================================= */
+  function saveProject() {
+    try {
+      var now = new Date();
+      var payload = {
+        version: 1,
+        savedAt: now.toISOString(),
+        inputs: {
+          m1: {
+            L: m1Length ? m1Length.value : "",
+            V: m1Speed ? m1Speed.value : "",
+            N: m1Count ? m1Count.value : ""
+          },
+          m2: {
+            t: m2Time ? m2Time.value : "",
+            K: m2Coef ? m2Coef.value : ""
+          },
+          m3: {
+            N: m3Intensity ? m3Intensity.value : "",
+            P: m3Capacity ? m3Capacity.value : ""
+          }
+        },
+        results: {
+          m1: { T: projectState.m1.T, I: projectState.m1.I },
+          m2: { P: projectState.m2.P },
+          m3: { Z: projectState.m3.Z }
+        }
+      };
+      localStorage.setItem(PROJECT_KEY, JSON.stringify(payload));
+      projectState.savedAt = payload.savedAt;
+
+      var d = new Date(payload.savedAt);
+      var stamp = d.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" }) +
+                  " " + d.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+      setStatus("m4", "Проект сохранён: " + stamp, true);
+      window.setTimeout(function () {
+        var el = document.querySelector('[data-status="m4"]');
+        if (el && el.classList.contains("is-success")) setStatus("m4", "");
+      }, 2200);
+    } catch (err) {
+      console.error("[dashboard] не удалось сохранить проект:", err);
+      setStatus("m4", "Не удалось сохранить проект (см. консоль).");
+    }
+  }
+
+  function loadProject() {
+    var raw;
+    try {
+      raw = localStorage.getItem(PROJECT_KEY);
+    } catch (e) {
+      return false;
+    }
+    if (!raw) return false;
+
+    var data;
+    try {
+      data = JSON.parse(raw);
+    } catch (e) {
+      console.warn("[dashboard] повреждённые данные проекта, пропускаем.");
+      return false;
+    }
+    if (!data || !data.inputs) return false;
+
+    try {
+      if (data.inputs.m1) {
+        if (m1Length) m1Length.value = data.inputs.m1.L || "";
+        if (m1Speed)  m1Speed.value  = data.inputs.m1.V || "";
+        if (m1Count)  m1Count.value  = data.inputs.m1.N || "";
+      }
+      if (data.inputs.m2) {
+        if (m2Time) m2Time.value = data.inputs.m2.t || "";
+        if (m2Coef) m2Coef.value = data.inputs.m2.K || "";
+      }
+      if (data.inputs.m3) {
+        if (m3Intensity) m3Intensity.value = data.inputs.m3.N || "";
+        if (m3Capacity)  m3Capacity.value  = data.inputs.m3.P || "";
+      }
+
+      // Пересчитываем модули, чтобы восстановить outputs и projectState.
+      if (m1Length && m1Speed && m1Count) calcM1();
+      if (m2Time && m2Coef) calcM2();
+      if (m3Intensity && m3Capacity) calcM3();
+
+      projectState.savedAt = data.savedAt || null;
+      console.log("[dashboard] проект загружен:", data.savedAt);
+      return true;
+    } catch (err) {
+      console.error("[dashboard] ошибка применения данных проекта:", err);
+      return false;
+    }
+  }
+
+  /* =========================================================
+     ПРИВЯЗКА ОБРАБОТЧИКОВ КНОПОК
+     ========================================================= */
+  $$("[data-action]").forEach(function (btn) {
+    var action = btn.getAttribute("data-action");
+    var module = btn.getAttribute("data-module");
+
+    btn.addEventListener("click", function (e) {
+      e.preventDefault();
+      try {
+        if (action === "calc") {
+          handleCalc(module);
+        } else if (action === "reset") {
+          resetModule(module);
+          // Сброс любого из модулей влияет на отчёт — обновим тихо.
+          buildReport(true);
+        } else if (action === "print") {
+          window.print();
+        } else if (action === "report") {
+          buildReport(false);
+        } else if (action === "save") {
+          saveProject();
+        }
+      } catch (err) {
+        console.error("[dashboard] ошибка в обработчике кнопки:", err);
+      }
+    });
+  });
+
+  /* =========================================================
+     ЖИВОЙ ПЕРЕСЧЁТ ПРИ ВВОДЕ
+     ========================================================= */
+  if (m1Length) {
+    m1Length.addEventListener("input", function () {
+      sanitizeInput(m1Length, true);
+      m1Length.classList.remove("is-error");
+      calcM1();
+    });
+  }
+  if (m1Speed) {
+    m1Speed.addEventListener("input", function () {
+      sanitizeInput(m1Speed, true);
+      m1Speed.classList.remove("is-error");
+      calcM1();
+    });
+  }
+  if (m1Count) {
+    m1Count.addEventListener("input", function () {
+      sanitizeInput(m1Count, false);
+      m1Count.classList.remove("is-error");
+      calcM1();
+    });
+  }
+
+  if (m2Time) {
+    m2Time.addEventListener("input", function () {
+      sanitizeInput(m2Time, true);
+      m2Time.classList.remove("is-error");
+      calcM2();
+    });
+  }
+  if (m2Coef) {
+    m2Coef.addEventListener("input", function () {
+      sanitizeInput(m2Coef, true);
+      m2Coef.classList.remove("is-error");
+      calcM2();
+    });
+  }
+
+  if (m3Intensity) {
+    m3Intensity.addEventListener("input", function () {
+      sanitizeInput(m3Intensity, true);
+      m3Intensity.classList.remove("is-error");
+      calcM3();
+    });
+  }
+  if (m3Capacity) {
+    m3Capacity.addEventListener("input", function () {
+      sanitizeInput(m3Capacity, true);
+      m3Capacity.classList.remove("is-error");
+      calcM3();
+    });
+  }
+
+  /* =========================================================
+     ENTER В ЛЮБОМ ПОЛЕ = «РАССЧИТАТЬ»
+     ========================================================= */
+  [
+    { el: m1Length,    module: "m1" },
+    { el: m1Speed,     module: "m1" },
+    { el: m1Count,     module: "m1" },
+    { el: m2Time,      module: "m2" },
+    { el: m2Coef,      module: "m2" },
+    { el: m3Intensity, module: "m3" },
+    { el: m3Capacity,  module: "m3" }
+  ].forEach(function (item) {
+    if (!item.el) return;
+    item.el.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.keyCode === 13) {
+        e.preventDefault();
+        handleCalc(item.module);
+      }
+    });
+  });
+
+  /* =========================================================
+     ИНИЦИАЛИЗАЦИЯ
+     ========================================================= */
+  clearModuleOutputs("m1");
+  clearModuleOutputs("m2");
+  clearModuleOutputs("m3");
+
+  // Пробуем восстановить ранее сохранённый проект.
+  var restored = loadProject();
+
+  // Первичное заполнение таблицы отчёта.
+  buildReport(true);
+
+  if (!restored) {
+    setStatus("m4", "Проект ещё не сохранён. Введите данные и нажмите «Сохранить проект».");
+  }
+
+  console.log("[dashboard] Инженерный дашборд инициализирован");
+})();
+</script>
+
+</body>
+</html>
